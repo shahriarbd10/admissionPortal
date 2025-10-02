@@ -1,19 +1,27 @@
+import Link from "next/link";
 import { requireUser } from "@/lib/session";
-import { departments } from "@/data/departments";
+import DepartmentsList from "@/components/DepartmentsList";
+
+async function fetchDepartments() {
+  const r = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ""}/api/departments?activeOnly=true`, {
+    cache: "no-store",
+  });
+  if (!r.ok) return { departments: [] as any[] };
+  return r.json();
+}
 
 export default async function DepartmentsPage() {
   await requireUser("/departments");
+  const { departments } = await fetchDepartments();
+
   return (
-    <main className="mx-auto max-w-2xl p-6">
-      <h1 className="text-2xl font-bold mb-4">Departments</h1>
-      <ul className="grid gap-3">
-        {departments.map((d) => (
-          <li key={d.id} className="border rounded p-4 bg-white">
-            <div className="font-medium">{d.name}</div>
-            <div className="text-xs text-neutral-500">id: {d.id}</div>
-          </li>
-        ))}
-      </ul>
+    <main className="mx-auto max-w-2xl p-6 space-y-4">
+      <div className="flex items-start justify-between">
+        <h1 className="text-2xl font-bold">Departments</h1>
+        <Link href="/profile" className="border px-3 py-2 rounded">Profile</Link>
+      </div>
+
+      <DepartmentsList departments={departments} />
     </main>
   );
 }
