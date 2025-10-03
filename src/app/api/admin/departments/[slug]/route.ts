@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/lib/db";
 import { Department } from "@/lib/models/Department";
 import { departmentUpdateSchema } from "@/lib/schemas";
@@ -10,10 +10,12 @@ function forbidIfProd() {
   return null;
 }
 
-export async function PUT(req: Request, { params }: { params: { slug: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const block = forbidIfProd(); if (block) return block;
 
-  const body = await req.json().catch(() => null);
+  const { slug } = await params;
+
+  const body = await req.json().catch(() => null as unknown);
   const parsed = departmentUpdateSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
@@ -26,7 +28,7 @@ export async function PUT(req: Request, { params }: { params: { slug: string } }
 
   await dbConnect();
   const res = await Department.findOneAndUpdate(
-    { slug: params.slug },
+    { slug },
     { $set: d },
     { new: true }
   ).lean();
@@ -35,11 +37,13 @@ export async function PUT(req: Request, { params }: { params: { slug: string } }
   return NextResponse.json({ ok: true, department: res });
 }
 
-export async function DELETE(_req: Request, { params }: { params: { slug: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const block = forbidIfProd(); if (block) return block;
 
+  const { slug } = await params;
+
   await dbConnect();
-  const res = await Department.deleteOne({ slug: params.slug });
+  const res = await Department.deleteOne({ slug });
   if (res.deletedCount === 0) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json({ ok: true });
 }
