@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { adminAuth } from "@/lib/firebaseAdmin";
 import { dbConnect } from "@/lib/db";
 import { User } from "@/lib/models/User";
@@ -7,20 +7,49 @@ import { generateCSE, generateSimple, type Question } from "@/data/sampleQuestio
 
 const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME || "__Host_session";
 
-function getCookie(req: Request, name: string) {
-  const cookie = req.headers.get("cookie") || "";
-  const m = cookie.match(new RegExp(`(?:^|;\\s*)${name.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}=([^;]+)`));
-  return m?.[1];
-}
-async function getDecodedFromCookie(req: Request) {
-  const token = getCookie(req, SESSION_COOKIE_NAME);
-  if (!token) return null;
-  try { return await adminAuth().verifySessionCookie(token, true); } catch { return null; }
-}
+type QuestionType = "MCQ" | "TF" | "FIB";
+
+type PaperItemDb = {
+  i: number;
+  id: string;
+  type: QuestionType;
+  q: string;
+  options?: string[];
+  correctIndex?: number;
+  correctText?: string;
+  hint?: string | null;
+};
+
+type ClientPaperItem = {
+  i: number;
+  id: string;
+  type: QuestionType;
+  q: string;
+  options?: string[];
+  hint?: string | null;
+};
 
 type UserLean = { firebaseUid: string; selectedDepartmentSlug?: string | null };
 
-export async function POST(req: Request) {
+function getCookie(req: NextRequest, name: string) {
+  const cookie = req.headers.get("cookie") || "";
+  const m = cookie.match(
+    new RegExp(`(?:^|;\\s*)${name.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}=([^;]+)`)
+  );
+  return m?.[1];
+}
+
+async function getDecodedFromCookie(req: NextRequest) {
+  const token = getCookie(req, SESSION_COOKIE_NAME);
+  if (!token) return null;
+  try {
+    return await adminAuth().verifySessionCookie(token, true);
+  } catch {
+    return null;
+  }
+}
+
+export async function POST(req: NextRequest) {
   try {
     const decoded = await getDecodedFromCookie(req);
     if (!decoded) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -37,7 +66,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Please select a department first." }, { status: 400 });
     }
 
-    // reuse active attempt if exists (until endAt)
+    // Reuse active attempt if exists (until endAt)
     const now = Date.now();
     const existing = await ExamAttempt.findOne({
       firebaseUid: decoded.uid,
@@ -47,32 +76,44 @@ export async function POST(req: Request) {
 
     if (existing && existing.endAt.getTime() > now) {
       // Send sanitized paper (without correct answers)
-      const paper = existing.paper.map((p) => ({
-        i: p.i,
-        id: p.id,
-        type: p.type as "MCQ" | "TF" | "FIB",
-        q: p.q,
-        options: p.options,
-        hint: p.hint,
-      }));
+      const clientPaper: ClientPaperItem[] = (existing.paper as PaperItemDb[]).map(
+        (p: PaperItemDb) => ({
+          i: p.i,
+          id: p.id,
+          type: p.type,
+          q: p.q,
+          options: p.options,
+          hint: p.hint ?? null,
+        })
+      );
+
       const saved: Record<number, number | string | null> = {};
-      if (existing.responses instanceof Map) {
-        for (const [k, v] of existing.responses.entries()) saved[Number(k)] = v as any;
-      } else if (existing.responses && typeof existing.responses === "object") {
-        Object.entries(existing.responses as any).forEach(([k, v]) => (saved[Number(k)] = v as any));
+      const responsesUnknown: unknown = (existing as any).responses;
+
+      if (responsesUnknown instanceof Map) {
+        for (const [k, v] of responsesUnknown.entries()) {
+          saved[Number(k)] = v as number | string | null;
+        }
+      } else if (responsesUnknown && typeof responsesUnknown === "object") {
+        Object.entries(responsesUnknown as Record<string, unknown>).forEach(([k, v]) => {
+          saved[Number(k)] = v as number | string | null;
+        });
       }
+
       return NextResponse.json({
         ok: true,
         attemptId: String(existing._id),
         endAt: existing.endAt,
-        paper,
+        paper: clientPaper,
         saved,
       });
     }
 
-    // else create a new attempt
-    const questions: Question[] = department === "cse" ? generateCSE() : generateSimple(department);
-    const paper = questions.map((q, i) => ({
+    // Else create a new attempt
+    const questions: Question[] =
+      department === "cse" ? generateCSE() : generateSimple(department);
+
+    const paper: PaperItemDb[] = questions.map((q, i) => ({
       i,
       id: q.id,
       type: q.type,
@@ -80,7 +121,8 @@ export async function POST(req: Request) {
       options: q.type !== "FIB" ? q.options : undefined,
       correctIndex: q.type !== "FIB" ? q.correctIndex : undefined,
       correctText: q.type === "FIB" ? q.correctText : undefined,
-      hint: (q as any).hint ?? undefined,
+      // Safely read optional `hint` if it exists on this union member
+      hint: ("hint" in q ? (q as { hint?: string | null }).hint ?? null : null),
     }));
 
     const startAt = new Date();
@@ -96,14 +138,14 @@ export async function POST(req: Request) {
       responses: {},
     });
 
-    // sanitized to client
-    const clientPaper = paper.map((p) => ({
+    // Sanitize for client (no correct answers)
+    const clientPaper: ClientPaperItem[] = paper.map((p: PaperItemDb) => ({
       i: p.i,
       id: p.id,
       type: p.type,
       q: p.q,
       options: p.options,
-      hint: p.hint,
+      hint: p.hint ?? null,
     }));
 
     return NextResponse.json({
@@ -113,8 +155,10 @@ export async function POST(req: Request) {
       paper: clientPaper,
       saved: {},
     });
-  } catch (e: any) {
-    console.error("[/api/exam/start] error:", e?.message || e);
+  } catch (e) {
+    const err = e as Error;
+    // eslint-disable-next-line no-console
+    console.error("[/api/exam/start] error:", err?.message || e);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
