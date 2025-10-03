@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { phoneLoginSchema } from "@/lib/schemas";
@@ -20,6 +20,9 @@ import {
 type ConfirmationResult = import("firebase/auth").ConfirmationResult;
 type Country = { code: string; dial: string; label: string; flag: string };
 
+// Prevent static generation / prerender for this page
+export const dynamic = "force-dynamic";
+
 const COUNTRIES: Country[] = [
   { code: "BD", dial: "+880", label: "Bangladesh", flag: "🇧🇩" },
   { code: "IN", dial: "+91", label: "India", flag: "🇮🇳" },
@@ -28,7 +31,8 @@ const COUNTRIES: Country[] = [
   { code: "GB", dial: "+44", label: "United Kingdom", flag: "🇬🇧" },
 ];
 
-export default function LoginPage() {
+/** The inner client component that actually calls useSearchParams */
+function LoginContent() {
   const params = useSearchParams();
   const next = params.get("next") || "/profile";
 
@@ -80,8 +84,9 @@ export default function LoginPage() {
       setStep("otp");
       showToast("ok", "OTP sent to your phone.");
       setTimeout(() => inputsRef.current[0]?.focus(), 200);
-    } catch (e: any) {
-      showToast("err", e?.message || "Failed to send OTP");
+    } catch (e: unknown) {
+      const err = e as { message?: string };
+      showToast("err", err?.message || "Failed to send OTP");
     } finally {
       setBusy(false);
     }
@@ -108,8 +113,9 @@ export default function LoginPage() {
       if (!r.ok) throw new Error(data?.error || "Login failed");
       showToast("ok", "Verified!");
       window.location.href = next || data?.next || "/profile";
-    } catch (e: any) {
-      showToast("err", e?.message || "Invalid or expired code");
+    } catch (e: unknown) {
+      const err = e as { message?: string };
+      showToast("err", err?.message || "Invalid or expired code");
     } finally {
       setBusy(false);
     }
@@ -320,6 +326,15 @@ export default function LoginPage() {
         </motion.div>
       </main>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  // ✅ Wrap the component that calls useSearchParams in Suspense
+  return (
+    <Suspense fallback={null}>
+      <LoginContent />
+    </Suspense>
   );
 }
 
