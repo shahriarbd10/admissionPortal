@@ -1,40 +1,25 @@
+// src/app/api/departments/route.ts
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/db";
 import { Department } from "@/lib/models/Department";
-import { departmentsQuerySchema } from "@/lib/schemas";
-
-export const revalidate = 0; // we’ll set cache headers manually
 
 export async function GET(req: Request) {
-  // Parse query
-  const url = new URL(req.url);
-  const params = Object.fromEntries(url.searchParams.entries());
-  const parse = departmentsQuerySchema.safeParse(params);
-  const activeOnly = parse.success ? parse.data.activeOnly : undefined;
+  try {
+    const url = new URL(req.url);
+    const activeOnly = url.searchParams.get("activeOnly") === "true";
 
-  await dbConnect();
+    await dbConnect();
 
-  const now = new Date();
-  const filter: Record<string, any> = { isActive: true };
-  if (activeOnly) {
-    filter.windowStart = { $lte: now };
-    filter.windowEnd = { $gte: now };
+    const q = activeOnly ? { isActive: true } : {};
+    const items = await Department.find(q)
+      .select({ slug: 1, name: 1, windowStart: 1, windowEnd: 1, isActive: 1, capacity: 1 })
+      .sort({ name: 1 })
+      .lean()
+      .exec();
+
+    return NextResponse.json({ departments: items });
+  } catch (e: any) {
+    console.error("[/api/departments] GET error:", e?.message || e);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
-
-  const docs = await Department.find(filter).sort({ name: 1 }).lean();
-
-  const res = NextResponse.json({
-    departments: docs.map((d) => ({
-      slug: d.slug,
-      name: d.name,
-      windowStart: d.windowStart,
-      windowEnd: d.windowEnd,
-      capacity: d.capacity ?? null,
-      isActive: d.isActive,
-    })),
-  });
-
-  // Public cache for 5 minutes; allow stale-while-revalidate
-  res.headers.set("Cache-Control", "public, max-age=300, s-maxage=300, stale-while-revalidate=300");
-  return res;
 }

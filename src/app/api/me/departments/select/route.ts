@@ -1,3 +1,4 @@
+// src/app/api/me/departments/select/route.ts
 import { NextResponse } from "next/server";
 import { adminAuth } from "@/lib/firebaseAdmin";
 import { dbConnect } from "@/lib/db";
@@ -7,10 +8,17 @@ import { departmentSelectSchema } from "@/lib/schemas";
 import type { DepartmentDoc } from "@/lib/models/Department";
 import type { UserDoc } from "@/lib/models/User";
 
-// Verify session cookie and return decoded token or null
+const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME || "__Host_session";
+
+function escapeRegex(s: string) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 async function getDecodedFromCookie(req: Request) {
   const cookie = req.headers.get("cookie") || "";
-  const m = cookie.match(/(?:^|;\s*)__Host_session=([^;]+)/);
+  const m = cookie.match(
+    new RegExp(`(?:^|;\\s*)${escapeRegex(SESSION_COOKIE_NAME)}=([^;]+)`)
+  );
   const sessionCookie = m?.[1];
   if (!sessionCookie) return null;
   try {
@@ -35,7 +43,10 @@ export async function POST(req: Request) {
   await dbConnect();
 
   // Load a single department and type it explicitly
-  const dept = await Department.findOne({ slug, isActive: true }).lean<DepartmentDoc | null>().exec();
+  const dept = await Department.findOne({ slug, isActive: true })
+    .lean<DepartmentDoc | null>()
+    .exec();
+
   if (!dept) {
     return NextResponse.json({ error: "Department not found" }, { status: 404 });
   }
@@ -43,7 +54,10 @@ export async function POST(req: Request) {
   // Window guard
   const now = new Date();
   if (now < new Date(dept.windowStart) || now > new Date(dept.windowEnd)) {
-    return NextResponse.json({ error: "Selection window is closed for this department" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Selection window is closed for this department" },
+      { status: 403 }
+    );
   }
 
   // Upsert selection for the current user

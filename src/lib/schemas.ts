@@ -1,6 +1,8 @@
+// src/lib/schemas.ts
 import { z } from "zod";
 
-// ---- Login ----
+/* ---------------------------------- Login --------------------------------- */
+
 export const phoneLoginSchema = z.object({
   afid: z.string().trim().min(3, "Enter your AFID"),
   phone: z
@@ -8,22 +10,23 @@ export const phoneLoginSchema = z.object({
     .trim()
     .regex(/^\+\d{10,15}$/, "Use E.164 format (e.g., +8801XXXXXXXXX)"),
 });
-
 export type PhoneLoginInput = z.infer<typeof phoneLoginSchema>;
 
-// ---- Profile ----
+/* --------------------------------- Profile -------------------------------- */
+
 export const profileUpdateSchema = z.object({
   admissionFormId: z.string().trim().min(3).max(64).optional(),
   name: z.string().trim().min(2, "Enter your full name").max(120),
   fatherName: z.string().trim().min(2).max(120),
   motherName: z.string().trim().min(2).max(120),
-  sscGPA: z.coerce.number().min(0).max(5),
-  hscGPA: z.coerce.number().min(0).max(5),
+  // GPAs are optional — when present they must be 0..5
+  sscGPA: z.coerce.number().min(0).max(5).optional(),
+  hscGPA: z.coerce.number().min(0).max(5).optional(),
 });
-
 export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;
 
-// ---- Departments (student side) ----
+/* ---------------------------- Departments (student) ----------------------- */
+
 export const departmentsQuerySchema = z.object({
   activeOnly: z.coerce.boolean().optional(), // ?activeOnly=true
 });
@@ -31,10 +34,10 @@ export const departmentsQuerySchema = z.object({
 export const departmentSelectSchema = z.object({
   slug: z.string().trim().min(1), // department slug
 });
-
 export type DepartmentSelectInput = z.infer<typeof departmentSelectSchema>;
 
-// ---- Departments (admin/dev side) ----
+/* --------------------------- Departments (admin/dev) ---------------------- */
+
 export const departmentUpsertSchema = z.object({
   slug: z
     .string()

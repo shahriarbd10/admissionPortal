@@ -1,26 +1,37 @@
+// src/app/api/me/profile/route.ts
 import { NextResponse } from "next/server";
 import { adminAuth } from "@/lib/firebaseAdmin";
 import { dbConnect } from "@/lib/db";
-import { User } from "@/lib/models/User"; // keep your import
-
+import { User } from "@/lib/models/User";
 import { profileUpdateSchema } from "@/lib/schemas";
 
-// Define the lean shape we actually read in responses
+const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME || "__Host_session";
+
+// Lean shape we actually read
 type UserLean = {
   firebaseUid: string;
   admissionFormId?: string;
   name?: string;
   fatherName?: string;
   motherName?: string;
-  sscGPA?: string | number;
-  hscGPA?: string | number;
+  sscGPA?: number;
+  hscGPA?: number;
   phone?: string;
+  selectedDepartmentSlug?: string;
+  selectedDepartmentAt?: Date;
   _id?: unknown;
 };
 
+function escapeRegex(s: string) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 async function getDecodedFromCookie(req: Request) {
   const cookie = req.headers.get("cookie") || "";
-  const match = cookie.match(/(?:^|;\s*)__Host_session=([^;]+)/);
+  // read cookie by configured name safely
+  const match = cookie.match(
+    new RegExp(`(?:^|;\\s*)${escapeRegex(SESSION_COOKIE_NAME)}=([^;]+)`)
+  );
   const sessionCookie = match?.[1];
   if (!sessionCookie) return null;
   try {
@@ -37,7 +48,6 @@ export async function GET(req: Request) {
   try {
     await dbConnect();
 
-    // ⬇️ Force the correct lean shape so it's not inferred as array | object
     const doc = await User.findOne({ firebaseUid: decoded.uid })
       .lean<UserLean | null>()
       .exec();
@@ -49,9 +59,11 @@ export async function GET(req: Request) {
             name: doc.name || "",
             fatherName: doc.fatherName || "",
             motherName: doc.motherName || "",
-            sscGPA: doc.sscGPA ?? "",
-            hscGPA: doc.hscGPA ?? "",
+            sscGPA: typeof doc.sscGPA === "number" ? doc.sscGPA : "",
+            hscGPA: typeof doc.hscGPA === "number" ? doc.hscGPA : "",
             phone: doc.phone || decoded.phone_number || "",
+            selectedDepartmentSlug: doc.selectedDepartmentSlug || "",
+            selectedDepartmentAt: doc.selectedDepartmentAt || null,
           }
         : {
             admissionFormId: "",
@@ -61,6 +73,8 @@ export async function GET(req: Request) {
             sscGPA: "",
             hscGPA: "",
             phone: decoded.phone_number || "",
+            selectedDepartmentSlug: "",
+            selectedDepartmentAt: null,
           },
     });
   } catch (e: any) {
@@ -87,12 +101,14 @@ export async function PUT(req: Request) {
 
     await dbConnect();
 
+    // Uniqueness check for AFID if provided
     if (admissionFormId) {
       const exists = await User.findOne({
         admissionFormId,
         firebaseUid: { $ne: decoded.uid },
       })
-        .lean<Pick<UserLean, "admissionFormId" | "firebaseUid"> | null>()
+        .select({ _id: 1 })
+        .lean<{ _id: unknown } | null>()
         .exec();
 
       if (exists) {
@@ -105,20 +121,21 @@ export async function PUT(req: Request) {
 
     const phone = decoded.phone_number || "";
 
+    // Build $set only with defined values
+    const update: Record<string, unknown> = {
+      firebaseUid: decoded.uid,
+      phone,
+      name,
+      fatherName,
+      motherName,
+    };
+    if (admissionFormId !== undefined) update.admissionFormId = admissionFormId;
+    if (typeof sscGPA === "number") update.sscGPA = sscGPA;
+    if (typeof hscGPA === "number") update.hscGPA = hscGPA;
+
     const doc = await User.findOneAndUpdate(
       { firebaseUid: decoded.uid },
-      {
-        $set: {
-          firebaseUid: decoded.uid,
-          phone,
-          admissionFormId: admissionFormId ?? undefined,
-          name,
-          fatherName,
-          motherName,
-          sscGPA,
-          hscGPA,
-        },
-      },
+      { $set: update },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     )
       .lean<UserLean | null>()

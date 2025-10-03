@@ -12,6 +12,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
+  NotebookPen,
+  Rocket,
 } from "lucide-react";
 
 type ServerProfile = {
@@ -22,6 +24,14 @@ type ServerProfile = {
   sscGPA: number | "";
   hscGPA: number | "";
   phone: string;
+};
+
+type Dept = {
+  slug: string;
+  name: string;
+  windowStart: string | Date;
+  windowEnd: string | Date;
+  isActive: boolean;
 };
 
 export default function ProfileForm() {
@@ -40,6 +50,10 @@ export default function ProfileForm() {
     phone: "",
   });
 
+  const [departments, setDepartments] = useState<Dept[]>([]);
+  const [selectedDept, setSelectedDept] = useState<string>(""); // current selection
+  const [deptMsg, setDeptMsg] = useState<string | null>(null);
+
   useEffect(() => {
     (async () => {
       try {
@@ -51,6 +65,34 @@ export default function ProfileForm() {
         setMsg("Failed to load profile");
       } finally {
         setLoading(false);
+      }
+    })();
+
+    // fetch departments & current selection
+    (async () => {
+      try {
+        const [listRes, meRes] = await Promise.all([
+          fetch("/api/departments?activeOnly=true", { cache: "no-store" }),
+          fetch("/api/me", { cache: "no-store" }).catch(() => null), // optional helper; fallback to profile GET if you don’t have it
+        ]);
+        const list = await listRes.json().catch(() => ({ departments: [] }));
+        setDepartments(list.departments || []);
+
+        // try to infer current selection from a tiny me endpoint; if you don't have it,
+        // remove this block and fetch selection from another lightweight endpoint.
+        let sel = "";
+        if (meRes && meRes.ok) {
+          const me = await meRes.json().catch(() => ({}));
+          sel = me?.user?.selectedDepartmentSlug || "";
+        } else {
+          // fallback: ask profile (less ideal but ok for demo)
+          const profRes = await fetch("/api/me/profile", { cache: "no-store" });
+          const prof = await profRes.json().catch(() => ({}));
+          sel = prof?.profile?.selectedDepartmentSlug || "";
+        }
+        setSelectedDept(sel);
+      } catch {
+        /* noop */
       }
     })();
   }, []);
@@ -85,8 +127,8 @@ export default function ProfileForm() {
           typeof data?.error === "string" ? data.error : "Save failed"
         );
 
-      // refresh with what server stored
-      if (data.profile) setForm((prev: ServerProfile) => ({ ...prev, ...data.profile }));
+      if (data.profile)
+        setForm((prev: ServerProfile) => ({ ...prev, ...data.profile }));
 
       setMsg("Saved!");
       setSavedTick(true);
@@ -97,6 +139,23 @@ export default function ProfileForm() {
       setSaving(false);
     }
   };
+
+  async function selectDept(slug: string, name: string) {
+    setDeptMsg(null);
+    try {
+      const r = await fetch("/api/me/departments/select", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug }),
+      });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data?.error || "Selection failed");
+      setSelectedDept(slug);
+      setDeptMsg(`Selected ${name}`);
+    } catch (e: any) {
+      setDeptMsg(e?.message || "Selection failed");
+    }
+  }
 
   /* -------------------------- PRESENTATION STARTS HERE -------------------------- */
 
@@ -110,7 +169,7 @@ export default function ProfileForm() {
   }
 
   return (
-    <div className="relative">
+    <div className="relative space-y-6">
       {/* animated background */}
       <div className="pointer-events-none absolute -inset-6 -z-10 opacity-70">
         <motion.div
@@ -125,6 +184,7 @@ export default function ProfileForm() {
         />
       </div>
 
+      {/* Profile form */}
       <motion.form
         onSubmit={onSubmit}
         className="relative rounded-2xl border bg-white/70 p-6 shadow-xl backdrop-blur-md md:p-8"
@@ -132,7 +192,6 @@ export default function ProfileForm() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 120, damping: 20 }}
       >
-        {/* Header */}
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
             <h2 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
@@ -269,6 +328,95 @@ export default function ProfileForm() {
           </div>
         </div>
       </motion.form>
+
+      {/* Department & Start Exam Card */}
+      <section className="rounded-2xl border bg-white/80 backdrop-blur p-6 shadow">
+        <div className="mb-2 flex items-center gap-2">
+          <NotebookPen className="h-5 w-5 text-indigo-600" />
+          <h3 className="text-lg font-semibold">Department & Exam</h3>
+        </div>
+
+        {deptMsg && (
+          <div className="mb-3 rounded bg-amber-50 text-amber-900 p-2 text-sm">
+            {deptMsg}
+          </div>
+        )}
+
+        <div className="grid gap-3 md:grid-cols-2">
+          <div className="space-y-2">
+            <div className="text-sm text-neutral-600">Select Department</div>
+            <div className="grid gap-2">
+              {departments.map((d) => {
+                const open =
+                  Date.now() >= new Date(d.windowStart).getTime() &&
+                  Date.now() <= new Date(d.windowEnd).getTime() &&
+                  d.isActive;
+                return (
+                  <label
+                    key={d.slug}
+                    className={`flex cursor-pointer items-center justify-between rounded-xl border px-3 py-2 ${
+                      selectedDept === d.slug ? "border-indigo-500" : ""
+                    }`}
+                  >
+                    <div>
+                      <div className="font-medium">{d.name}</div>
+                      <div className="text-xs text-neutral-500">
+                        {new Date(d.windowStart).toLocaleString()} →{" "}
+                        {new Date(d.windowEnd).toLocaleString()} •{" "}
+                        <span
+                          className={`ml-1 rounded px-1.5 py-0.5 ${
+                            open
+                              ? "bg-green-100 text-green-700"
+                              : "bg-gray-100 text-gray-600"
+                          }`}
+                        >
+                          {open ? "Open" : "Closed"}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={!open}
+                      onClick={() => selectDept(d.slug, d.name)}
+                      className="rounded bg-black px-3 py-1.5 text-white disabled:opacity-40"
+                    >
+                      {selectedDept === d.slug ? "Selected" : "Select"}
+                    </button>
+                  </label>
+                );
+              })}
+              {departments.length === 0 && (
+                <div className="rounded border p-3 text-sm text-neutral-600">
+                  No departments are open now.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Start exam panel */}
+          <div className="rounded-2xl border p-4">
+            <div className="mb-1 text-sm text-neutral-600">Start Exam</div>
+            <div className="text-xs text-neutral-500 mb-2">
+              Make sure your profile is saved and a department is selected.
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                if (!selectedDept) {
+                  setDeptMsg("Please select a department first.");
+                  return;
+                }
+                // go straight to exam page (exam will show caution modal and start immediately on confirm)
+                window.location.href = "/exam";
+              }}
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-5 py-2 text-white shadow hover:brightness-110"
+            >
+              <Rocket className="h-4 w-4" />
+              Start Exam
+            </button>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
