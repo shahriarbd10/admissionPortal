@@ -1,6 +1,7 @@
+// src/components/ProfileForm.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ProfileUpdateInput } from "@/lib/schemas";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -14,6 +15,7 @@ import {
   Loader2,
   NotebookPen,
   Rocket,
+  Clock,
 } from "lucide-react";
 
 type ServerProfile = {
@@ -24,6 +26,7 @@ type ServerProfile = {
   sscGPA: number | "";
   hscGPA: number | "";
   phone: string;
+  selectedDepartmentSlug?: string;
 };
 
 type Dept = {
@@ -51,16 +54,26 @@ export default function ProfileForm() {
   });
 
   const [departments, setDepartments] = useState<Dept[]>([]);
-  const [selectedDept, setSelectedDept] = useState<string>(""); // current selection
+  const [selectedDept, setSelectedDept] = useState<string>("");
   const [deptMsg, setDeptMsg] = useState<string | null>(null);
+  const [deptBusy, setDeptBusy] = useState(false);
+
+  // modal state
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
         const r = await fetch("/api/me/profile", { cache: "no-store" });
         const data = await r.json();
-        if (r.ok) setForm(data.profile);
-        else setMsg(data.error || "Failed to load profile");
+        if (r.ok) {
+          setForm(data.profile);
+          if (data.profile?.selectedDepartmentSlug) {
+            setSelectedDept(data.profile.selectedDepartmentSlug);
+          }
+        } else {
+          setMsg(data.error || "Failed to load profile");
+        }
       } catch {
         setMsg("Failed to load profile");
       } finally {
@@ -68,29 +81,13 @@ export default function ProfileForm() {
       }
     })();
 
-    // fetch departments & current selection
     (async () => {
       try {
-        const [listRes, meRes] = await Promise.all([
-          fetch("/api/departments?activeOnly=true", { cache: "no-store" }),
-          fetch("/api/me", { cache: "no-store" }).catch(() => null), // optional helper; fallback to profile GET if you don’t have it
-        ]);
+        const listRes = await fetch("/api/departments?activeOnly=true", {
+          cache: "no-store",
+        });
         const list = await listRes.json().catch(() => ({ departments: [] }));
         setDepartments(list.departments || []);
-
-        // try to infer current selection from a tiny me endpoint; if you don't have it,
-        // remove this block and fetch selection from another lightweight endpoint.
-        let sel = "";
-        if (meRes && meRes.ok) {
-          const me = await meRes.json().catch(() => ({}));
-          sel = me?.user?.selectedDepartmentSlug || "";
-        } else {
-          // fallback: ask profile (less ideal but ok for demo)
-          const profRes = await fetch("/api/me/profile", { cache: "no-store" });
-          const prof = await profRes.json().catch(() => ({}));
-          sel = prof?.profile?.selectedDepartmentSlug || "";
-        }
-        setSelectedDept(sel);
       } catch {
         /* noop */
       }
@@ -140,7 +137,22 @@ export default function ProfileForm() {
     }
   };
 
-  async function selectDept(slug: string, name: string) {
+  async function selectDept(slug: string) {
+    if (!slug) return;
+    const dept = departments.find((d) => d.slug === slug);
+    if (!dept) return;
+
+    const open =
+      Date.now() >= new Date(dept.windowStart).getTime() &&
+      Date.now() <= new Date(dept.windowEnd).getTime() &&
+      dept.isActive;
+
+    if (!open) {
+      setDeptMsg("This department is currently closed.");
+      return;
+    }
+
+    setDeptBusy(true);
     setDeptMsg(null);
     try {
       const r = await fetch("/api/me/departments/select", {
@@ -151,13 +163,28 @@ export default function ProfileForm() {
       const data = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(data?.error || "Selection failed");
       setSelectedDept(slug);
-      setDeptMsg(`Selected ${name}`);
+      setDeptMsg(`Selected ${dept.name}`);
     } catch (e: any) {
       setDeptMsg(e?.message || "Selection failed");
+    } finally {
+      setDeptBusy(false);
     }
   }
 
-  /* -------------------------- PRESENTATION STARTS HERE -------------------------- */
+  function openConfirm() {
+    if (!selectedDept) {
+      setDeptMsg("Please select a department first.");
+      return;
+    }
+    setConfirmOpen(true);
+  }
+
+  function proceedToExam() {
+    setConfirmOpen(false);
+    window.location.href = "/exam";
+  }
+
+  /* -------------------------- PRESENTATION -------------------------- */
 
   if (loading) {
     return (
@@ -170,7 +197,7 @@ export default function ProfileForm() {
 
   return (
     <div className="relative space-y-6">
-      {/* animated background */}
+      {/* glow background */}
       <div className="pointer-events-none absolute -inset-6 -z-10 opacity-70">
         <motion.div
           className="h-72 w-full rounded-[2rem] blur-3xl"
@@ -204,28 +231,28 @@ export default function ProfileForm() {
             </p>
           </div>
 
-          <AnimatePresence>
-            {msg && (
-              <motion.div
-                key="msg"
-                initial={{ y: -8, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -8, opacity: 0 }}
-                className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm ${
-                  msg === "Saved!"
-                    ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-                    : "bg-amber-50 text-amber-800 ring-1 ring-amber-200"
-                }`}
-              >
-                {msg === "Saved!" ? (
-                  <CheckCircle2 className="h-4 w-4" />
-                ) : (
-                  <AlertCircle className="h-4 w-4" />
-                )}
-                {msg}
-              </motion.div>
-            )}
-          </AnimatePresence>
+        <AnimatePresence>
+          {msg && (
+            <motion.div
+              key="msg"
+              initial={{ y: -8, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -8, opacity: 0 }}
+              className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm ${
+                msg === "Saved!"
+                  ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+                  : "bg-amber-50 text-amber-800 ring-1 ring-amber-200"
+              }`}
+            >
+              {msg === "Saved!" ? (
+                <CheckCircle2 className="h-4 w-4" />
+              ) : (
+                <AlertCircle className="h-4 w-4" />
+              )}
+              {msg}
+            </motion.div>
+          )}
+        </AnimatePresence>
         </div>
 
         {/* Fields */}
@@ -303,7 +330,7 @@ export default function ProfileForm() {
           />
         </div>
 
-        {/* Actions */}
+        {/* Save button */}
         <div className="mt-7 flex items-center gap-3">
           <motion.button
             type="submit"
@@ -329,94 +356,76 @@ export default function ProfileForm() {
         </div>
       </motion.form>
 
-      {/* Department & Start Exam Card */}
-      <section className="rounded-2xl border bg-white/80 backdrop-blur p-6 shadow">
-        <div className="mb-2 flex items-center gap-2">
+      {/* Department & Start Exam (dropdown + centered button) */}
+      <section className="rounded-2xl border bg-white/80 backdrop-blur p-6 shadow space-y-4">
+        <div className="mb-1 flex items-center gap-2">
           <NotebookPen className="h-5 w-5 text-indigo-600" />
           <h3 className="text-lg font-semibold">Department & Exam</h3>
         </div>
 
         {deptMsg && (
-          <div className="mb-3 rounded bg-amber-50 text-amber-900 p-2 text-sm">
+          <div className="rounded bg-amber-50 text-amber-900 p-2 text-sm">
             {deptMsg}
           </div>
         )}
 
-        <div className="grid gap-3 md:grid-cols-2">
-          <div className="space-y-2">
-            <div className="text-sm text-neutral-600">Select Department</div>
-            <div className="grid gap-2">
+        {/* Dropdown */}
+        <div className="grid gap-2">
+          <label className="text-sm text-neutral-600">Select Department</label>
+          <div className="relative">
+            <select
+              value={selectedDept}
+              onChange={(e) => {
+                const slug = e.target.value;
+                setSelectedDept(slug);
+                void selectDept(slug);
+              }}
+              disabled={deptBusy || departments.length === 0}
+              className="w-full appearance-none rounded-xl border bg-white px-3 py-2.5 pr-10 text-sm shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 disabled:opacity-60"
+            >
+              <option value="" disabled>
+                {departments.length ? "Choose a department…" : "Loading…"}
+              </option>
               {departments.map((d) => {
                 const open =
                   Date.now() >= new Date(d.windowStart).getTime() &&
                   Date.now() <= new Date(d.windowEnd).getTime() &&
                   d.isActive;
                 return (
-                  <label
-                    key={d.slug}
-                    className={`flex cursor-pointer items-center justify-between rounded-xl border px-3 py-2 ${
-                      selectedDept === d.slug ? "border-indigo-500" : ""
-                    }`}
-                  >
-                    <div>
-                      <div className="font-medium">{d.name}</div>
-                      <div className="text-xs text-neutral-500">
-                        {new Date(d.windowStart).toLocaleString()} →{" "}
-                        {new Date(d.windowEnd).toLocaleString()} •{" "}
-                        <span
-                          className={`ml-1 rounded px-1.5 py-0.5 ${
-                            open
-                              ? "bg-green-100 text-green-700"
-                              : "bg-gray-100 text-gray-600"
-                          }`}
-                        >
-                          {open ? "Open" : "Closed"}
-                        </span>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      disabled={!open}
-                      onClick={() => selectDept(d.slug, d.name)}
-                      className="rounded bg-black px-3 py-1.5 text-white disabled:opacity-40"
-                    >
-                      {selectedDept === d.slug ? "Selected" : "Select"}
-                    </button>
-                  </label>
+                  <option key={d.slug} value={d.slug} disabled={!open}>
+                    {d.name} ({d.slug.toUpperCase()}) {open ? "" : "— Closed"}
+                  </option>
                 );
               })}
-              {departments.length === 0 && (
-                <div className="rounded border p-3 text-sm text-neutral-600">
-                  No departments are open now.
-                </div>
-              )}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-neutral-400">
+              ▾
             </div>
           </div>
+          <p className="text-xs text-neutral-500">
+            Pick your department. Only open departments are selectable.
+          </p>
+        </div>
 
-          {/* Start exam panel */}
-          <div className="rounded-2xl border p-4">
-            <div className="mb-1 text-sm text-neutral-600">Start Exam</div>
-            <div className="text-xs text-neutral-500 mb-2">
-              Make sure your profile is saved and a department is selected.
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                if (!selectedDept) {
-                  setDeptMsg("Please select a department first.");
-                  return;
-                }
-                // go straight to exam page (exam will show caution modal and start immediately on confirm)
-                window.location.href = "/exam";
-              }}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-5 py-2 text-white shadow hover:brightness-110"
-            >
-              <Rocket className="h-4 w-4" />
-              Start Exam
-            </button>
-          </div>
+        {/* Start Exam — centered */}
+        <div className="pt-2 flex justify-center">
+          <button
+            type="button"
+            onClick={openConfirm}
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-6 py-2.5 text-white shadow hover:brightness-110"
+          >
+            <Rocket className="h-4 w-4" />
+            Start Exam
+          </button>
         </div>
       </section>
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={proceedToExam}
+      />
     </div>
   );
 }
@@ -490,5 +499,92 @@ function SkeletonCard() {
       </div>
       <div className="h-10 w-36 rounded-xl bg-neutral-200/70" />
     </div>
+  );
+}
+
+/* ------------------------------ MODAL ------------------------------ */
+
+function ConfirmModal({
+  open,
+  onClose,
+  onConfirm,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  const panelRef = useRef<HTMLDivElement | null>(null);
+
+  // close on ESC
+  useEffect(() => {
+    if (!open) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
+  // simple focus set
+  useEffect(() => {
+    if (open && panelRef.current) {
+      panelRef.current.focus();
+    }
+  }, [open]);
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          className="fixed inset-0 z-50 grid place-items-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          aria-modal="true"
+          role="dialog"
+        >
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={onClose}
+          />
+          {/* Panel */}
+          <motion.div
+            ref={panelRef}
+            tabIndex={-1}
+            className="relative z-10 w-full max-w-md rounded-2xl border bg-white p-6 shadow-xl"
+            initial={{ y: 16, scale: 0.98, opacity: 0 }}
+            animate={{ y: 0, scale: 1, opacity: 1 }}
+            exit={{ y: 16, scale: 0.98, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 200, damping: 22 }}
+          >
+            <div className="mb-3 flex items-center gap-2">
+              <Clock className="h-5 w-5 text-indigo-600" />
+              <h4 className="text-lg font-semibold">Start Exam</h4>
+            </div>
+            <p className="text-sm text-neutral-700">
+              You are about to start your exam. The timer will begin immediately and
+              you will have <span className="font-medium">60 minutes</span>. Continue?
+            </p>
+
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                onClick={onClose}
+                className="rounded-lg border px-4 py-2 text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={onConfirm}
+                className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-indigo-700"
+              >
+                <Rocket className="h-4 w-4" />
+                Start Now
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

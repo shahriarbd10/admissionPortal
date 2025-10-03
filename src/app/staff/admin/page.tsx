@@ -1,16 +1,15 @@
-// src/app/staff/admin/page.tsx
 import Link from "next/link";
 
 export default function AdminDashboard() {
   return (
-    <main className="min-h-screen bg-gray-50 p-6">
+    <main className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-fuchsia-50 p-6">
       <div className="mx-auto max-w-6xl">
         {/* Header */}
         <header className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
             <p className="mt-1 text-sm text-neutral-600">
-              Manage programs, questions, and view submissions.
+              Manage exams, view submissions, and explore analytics.
             </p>
           </div>
 
@@ -27,38 +26,36 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <Link
             href="/staff/admin/results"
-            className="rounded-2xl border bg-white p-5 shadow-sm hover:shadow transition"
+            className="rounded-2xl border bg-white/80 p-5 shadow-sm transition hover:shadow backdrop-blur"
           >
             <div className="text-sm font-medium text-neutral-500">Reports</div>
             <div className="mt-1 text-lg font-semibold">Exam Submissions</div>
             <p className="mt-2 text-sm text-neutral-600">
-              See submitted papers with Exam Score & GPA-weighted marks.
+              Inspect submitted papers, see objective marks and GPA-weighted totals.
             </p>
           </Link>
 
-          <Link
-            href="#"
-            className="rounded-2xl border bg-white p-5 shadow-sm opacity-60 pointer-events-none"
+          <div
+            className="rounded-2xl border bg-white/60 p-5 opacity-60 shadow-sm"
             title="Coming soon"
           >
-            <div className="text-sm font-medium text-neutral-500">Questions</div>
-            <div className="mt-1 text-lg font-semibold">Question Bank</div>
+            <div className="text-sm font-medium text-neutral-500">Question Bank</div>
+            <div className="mt-1 text-lg font-semibold">Author & Review</div>
             <p className="mt-2 text-sm text-neutral-600">
-              Author, review, and publish questions (Phase 2).
+              Create question sets and publish per department. (Phase 2)
             </p>
-          </Link>
+          </div>
 
-          <Link
-            href="#"
-            className="rounded-2xl border bg-white p-5 shadow-sm opacity-60 pointer-events-none"
+          <div
+            className="rounded-2xl border bg-white/60 p-5 opacity-60 shadow-sm"
             title="Coming soon"
           >
             <div className="text-sm font-medium text-neutral-500">Setup</div>
-            <div className="mt-1 text-lg font-semibold">Exams & Windows</div>
+            <div className="mt-1 text-lg font-semibold">Windows & Duration</div>
             <p className="mt-2 text-sm text-neutral-600">
-              Configure durations, windows, and counts (Phase 3).
+              Configure durations, windows, and capacity. (Phase 3)
             </p>
-          </Link>
+          </div>
         </div>
       </div>
     </main>
