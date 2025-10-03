@@ -213,12 +213,13 @@ function LoginContent() {
 
                 {/* Phone */}
                 <Field label="Phone">
-                  <div className="mt-1 flex gap-2">
+                  {/* Responsive: stack on xs, side-by-side from sm+ */}
+                  <div className="mt-1 grid grid-cols-1 sm:grid-cols-[8.5rem,1fr] gap-2 items-center">
                     <div className="relative">
                       <Flag className="pointer-events-none absolute left-2 top-2.5 h-4 w-4 text-neutral-400" />
                       <select
                         aria-label="Country code"
-                        className="w-28 rounded-xl border border-neutral-200 bg-gray-50 pl-8 pr-2 py-2 outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+                        className="w-full rounded-xl border border-neutral-200 bg-gray-50 pl-8 pr-2 py-2 outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
                         value={countryDial}
                         onChange={(e) => setCountryDial(e.target.value)}
                       >
@@ -229,9 +230,10 @@ function LoginContent() {
                         ))}
                       </select>
                     </div>
+
                     <input
                       aria-label="Phone number"
-                      className="flex-1 rounded-xl border border-neutral-200 px-3 py-2 outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+                      className="min-w-0 w-full rounded-xl border border-neutral-200 px-3 py-2 outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
                       placeholder="Phone number"
                       value={localNumber}
                       onChange={(e) => {
