@@ -25,7 +25,7 @@ export function signStaffJWT(payload: { sid: string; role: StaffRole }) {
 
 /** Set staff JWT cookie (used by the login route) */
 export async function setStaffCookie(token: string) {
-  const jar = await cookies(); // Next 15 API is async
+  const jar = await cookies(); // Next 15 is async
   jar.set(STAFF_COOKIE, token, {
     httpOnly: true,
     secure: true,
@@ -35,10 +35,54 @@ export async function setStaffCookie(token: string) {
   });
 }
 
+/** Clear the staff session cookie (logout) */
+export async function clearStaffSession() {
+  const jar = await cookies();
+  // Setting maxAge: 0 deletes the cookie
+  jar.set(STAFF_COOKIE, "", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    path: "/",
+    maxAge: 0,
+  });
+}
+
+/** Return the current staff identity if logged in, otherwise null */
+export async function getStaffIdentity(): Promise<StaffSession | null> {
+  try {
+    const jar = await cookies();
+    const token = jar.get(STAFF_COOKIE)?.value;
+    if (!token) return null;
+
+    const decoded = jwt.verify(token, STAFF_JWT_SECRET) as {
+      sid?: string;
+      role?: StaffRole;
+    };
+    if (!decoded?.sid || !decoded?.role) return null;
+
+    await dbConnect();
+    const staff = await Staff.findById(decoded.sid)
+      .select({ _id: 1, role: 1, username: 1, email: 1 })
+      .lean<{ _id: unknown; role: StaffRole; username?: string; email?: string }>()
+      .exec();
+    if (!staff) return null;
+
+    return {
+      id: String(staff._id),
+      role: staff.role,
+      username: staff.username ?? null,
+      email: staff.email ?? null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 /** Return a staff session if logged in and (optionally) in allowed roles */
 export async function requireStaff(allowed?: StaffRole[]) {
   try {
-    const jar = await cookies(); // Next 15 API is async
+    const jar = await cookies();
     const token = jar.get(STAFF_COOKIE)?.value;
     if (!token) return null;
 
