@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Admission Portal",
-  description: "Phase 1 — Phone OTP",
+  description: "welcome to the smart admission portal",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
