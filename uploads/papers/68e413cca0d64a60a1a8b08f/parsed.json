@@ -1,0 +1,602 @@
+[
+  {
+    "id": "q-1759777740598-0",
+    "type": "MCQ",
+    "q": "What is the Capital of Bangladesh",
+    "options": [
+      "Dhaka",
+      "Cumilla",
+      "Chattogram",
+      "Mymensingh"
+    ],
+    "correctIndex": 0,
+    "sl": 1
+  },
+  {
+    "id": "q-1759777740598-1",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 2
+  },
+  {
+    "id": "q-1759777740598-2",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 3
+  },
+  {
+    "id": "q-1759777740598-3",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 4
+  },
+  {
+    "id": "q-1759777740598-4",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 5
+  },
+  {
+    "id": "q-1759777740598-5",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 6
+  },
+  {
+    "id": "q-1759777740598-6",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 7
+  },
+  {
+    "id": "q-1759777740598-7",
+    "type": "TF",
+    "q": "Full form of CSE is Computer Science and Engineering",
+    "options": [
+      "True",
+      "False"
+    ],
+    "correctIndex": 0,
+    "sl": 8
+  },
+  {
+    "id": "q-1759777740598-8",
+    "type": "TF",
+    "q": "Full form of CSE is Computer and Social Collapse",
+    "options": [
+      "True",
+      "False"
+    ],
+    "correctIndex": 1,
+    "sl": 9
+  },
+  {
+    "id": "q-1759777740598-9",
+    "type": "FIB",
+    "q": "Full form of CSE",
+    "correctText": "Computer Science and Engineering",
+    "sl": 10
+  },
+  {
+    "id": "q-1759777740598-10",
+    "type": "MCQ",
+    "q": "What is the Capital of Bangladesh",
+    "options": [
+      "Dhaka",
+      "Cumilla",
+      "Chattogram",
+      "Mymensingh"
+    ],
+    "correctIndex": 0,
+    "sl": 11
+  },
+  {
+    "id": "q-1759777740598-11",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 12
+  },
+  {
+    "id": "q-1759777740598-12",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 13
+  },
+  {
+    "id": "q-1759777740598-13",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 14
+  },
+  {
+    "id": "q-1759777740598-14",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 15
+  },
+  {
+    "id": "q-1759777740598-15",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 16
+  },
+  {
+    "id": "q-1759777740598-16",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 17
+  },
+  {
+    "id": "q-1759777740598-17",
+    "type": "TF",
+    "q": "Full form of CSE is Computer Science and Engineering",
+    "options": [
+      "True",
+      "False"
+    ],
+    "correctIndex": 0,
+    "sl": 18
+  },
+  {
+    "id": "q-1759777740598-18",
+    "type": "TF",
+    "q": "Full form of CSE is Computer and Social Collapse",
+    "options": [
+      "True",
+      "False"
+    ],
+    "correctIndex": 1,
+    "sl": 19
+  },
+  {
+    "id": "q-1759777740598-19",
+    "type": "FIB",
+    "q": "Full form of CSE",
+    "correctText": "Computer Science and Engineering",
+    "sl": 20
+  },
+  {
+    "id": "q-1759777740598-20",
+    "type": "MCQ",
+    "q": "What is the Capital of Bangladesh",
+    "options": [
+      "Dhaka",
+      "Cumilla",
+      "Chattogram",
+      "Mymensingh"
+    ],
+    "correctIndex": 0,
+    "sl": 21
+  },
+  {
+    "id": "q-1759777740598-21",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 22
+  },
+  {
+    "id": "q-1759777740598-22",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 23
+  },
+  {
+    "id": "q-1759777740598-23",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 24
+  },
+  {
+    "id": "q-1759777740598-24",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 25
+  },
+  {
+    "id": "q-1759777740598-25",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 26
+  },
+  {
+    "id": "q-1759777740598-26",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 27
+  },
+  {
+    "id": "q-1759777740598-27",
+    "type": "TF",
+    "q": "Full form of CSE is Computer Science and Engineering",
+    "options": [
+      "True",
+      "False"
+    ],
+    "correctIndex": 0,
+    "sl": 28
+  },
+  {
+    "id": "q-1759777740598-28",
+    "type": "TF",
+    "q": "Full form of CSE is Computer and Social Collapse",
+    "options": [
+      "True",
+      "False"
+    ],
+    "correctIndex": 1,
+    "sl": 29
+  },
+  {
+    "id": "q-1759777740598-29",
+    "type": "FIB",
+    "q": "Full form of CSE",
+    "correctText": "Computer Science and Engineering",
+    "sl": 30
+  },
+  {
+    "id": "q-1759777740598-30",
+    "type": "MCQ",
+    "q": "What is the Capital of Bangladesh",
+    "options": [
+      "Dhaka",
+      "Cumilla",
+      "Chattogram",
+      "Mymensingh"
+    ],
+    "correctIndex": 0,
+    "sl": 31
+  },
+  {
+    "id": "q-1759777740598-31",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 32
+  },
+  {
+    "id": "q-1759777740598-32",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 33
+  },
+  {
+    "id": "q-1759777740598-33",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 34
+  },
+  {
+    "id": "q-1759777740598-34",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 35
+  },
+  {
+    "id": "q-1759777740598-35",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 36
+  },
+  {
+    "id": "q-1759777740598-36",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 37
+  },
+  {
+    "id": "q-1759777740598-37",
+    "type": "TF",
+    "q": "Full form of CSE is Computer Science and Engineering",
+    "options": [
+      "True",
+      "False"
+    ],
+    "correctIndex": 0,
+    "sl": 38
+  },
+  {
+    "id": "q-1759777740598-38",
+    "type": "TF",
+    "q": "Full form of CSE is Computer and Social Collapse",
+    "options": [
+      "True",
+      "False"
+    ],
+    "correctIndex": 1,
+    "sl": 39
+  },
+  {
+    "id": "q-1759777740598-39",
+    "type": "FIB",
+    "q": "Full form of CSE",
+    "correctText": "Computer Science and Engineering",
+    "sl": 40
+  },
+  {
+    "id": "q-1759777740598-40",
+    "type": "MCQ",
+    "q": "What is the Capital of Bangladesh",
+    "options": [
+      "Dhaka",
+      "Cumilla",
+      "Chattogram",
+      "Mymensingh"
+    ],
+    "correctIndex": 0,
+    "sl": 41
+  },
+  {
+    "id": "q-1759777740598-41",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 42
+  },
+  {
+    "id": "q-1759777740598-42",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 43
+  },
+  {
+    "id": "q-1759777740598-43",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 44
+  },
+  {
+    "id": "q-1759777740598-44",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 45
+  },
+  {
+    "id": "q-1759777740598-45",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 46
+  },
+  {
+    "id": "q-1759777740598-46",
+    "type": "MCQ",
+    "q": "Full form of CSE",
+    "options": [
+      "Computer Science and English",
+      "Computer Science and Engineering",
+      "Computer and Social Collapse",
+      "Calculator and Scale Engineering"
+    ],
+    "correctIndex": 1,
+    "sl": 47
+  },
+  {
+    "id": "q-1759777740598-47",
+    "type": "TF",
+    "q": "Full form of CSE is Computer Science and Engineering",
+    "options": [
+      "True",
+      "False"
+    ],
+    "correctIndex": 0,
+    "sl": 48
+  },
+  {
+    "id": "q-1759777740598-48",
+    "type": "TF",
+    "q": "Full form of CSE is Computer and Social Collapse",
+    "options": [
+      "True",
+      "False"
+    ],
+    "correctIndex": 1,
+    "sl": 49
+  },
+  {
+    "id": "q-1759777740598-49",
+    "type": "FIB",
+    "q": "Full form of CSE",
+    "correctText": "Computer Science and Engineering",
+    "sl": 50
+  }
+]

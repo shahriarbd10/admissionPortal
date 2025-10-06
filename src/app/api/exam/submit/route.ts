@@ -43,11 +43,9 @@ export async function POST(req: Request) {
 
     if (!doc) return NextResponse.json({ error: "Not found" }, { status: 404 });
     if (doc.status !== "active") {
-      // already submitted: do not re-show marks to student
       return NextResponse.json({ ok: true, already: true });
     }
 
-    // Build results
     const results: {
       i: number; id: string; type: "MCQ" | "TF" | "FIB";
       answer: number | string | null;
@@ -67,12 +65,8 @@ export async function POST(req: Request) {
         const correct = typeof p.correctIndex === "number" && ans === p.correctIndex;
         if (correct) correctCount++;
         results.push({
-          i: p.i,
-          id: p.id,
-          type: p.type as any,
-          answer: ans,
-          correctAnswer: p.correctIndex ?? -1,
-          correct,
+          i: p.i, id: p.id, type: p.type as any,
+          answer: ans, correctAnswer: p.correctIndex ?? -1, correct,
         });
       } else {
         const ans = typeof saved === "string" ? saved : "";
@@ -81,17 +75,12 @@ export async function POST(req: Request) {
           ans.trim().toLowerCase() === p.correctText.trim().toLowerCase();
         if (correct) correctCount++;
         results.push({
-          i: p.i,
-          id: p.id,
-          type: "FIB",
-          answer: ans,
-          correctAnswer: p.correctText || "",
-          correct,
+          i: p.i, id: p.id, type: "FIB",
+          answer: ans, correctAnswer: p.correctText || "", correct,
         });
       }
     }
 
-    // pull user snapshot & compute GPA-weighted
     const user = await User.findOne({ firebaseUid: decoded.uid })
       .lean<UserLean | null>()
       .exec();
@@ -103,17 +92,17 @@ export async function POST(req: Request) {
     doc.status = "submitted";
     doc.submittedAt = new Date();
     doc.results = results;
-    doc.examScore = correctCount;
+
+    const per = typeof doc.pointsPerCorrect === "number" ? doc.pointsPerCorrect : 1;
+    doc.examScore = correctCount * per;
     doc.gpaWeighted = gpaWeighted;
 
-    // snapshot
     doc.applicantName = user?.name || "";
     doc.applicantAfid = user?.admissionFormId || "";
     doc.applicantPhone = user?.phone || "";
 
     await doc.save();
 
-    // Do NOT send marks to student
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     console.error("[/api/exam/submit] error:", e?.message || e);

@@ -1,6 +1,8 @@
+// src/app/login/page.tsx
 "use client";
 
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { phoneLoginSchema } from "@/lib/schemas";
@@ -15,6 +17,7 @@ import {
   Send,
   CheckCircle2,
   AlertCircle,
+  Home,
 } from "lucide-react";
 
 type ConfirmationResult = import("firebase/auth").ConfirmationResult;
@@ -159,6 +162,17 @@ function LoginContent() {
                 AFID + Phone OTP to access your profile.
               </p>
             </div>
+
+            {/* Home button */}
+            <Link
+              href="/"
+              prefetch={false}
+              className="inline-flex items-center gap-1.5 rounded-xl border bg-white/60 px-3 py-2 text-sm text-neutral-700 hover:bg-white"
+              aria-label="Back to Home"
+            >
+              <Home className="h-4 w-4" />
+              Home
+            </Link>
           </div>
 
           {/* Toast */}
@@ -214,12 +228,12 @@ function LoginContent() {
                 {/* Phone */}
                 <Field label="Phone">
                   {/* Responsive: stack on xs, side-by-side from sm+ */}
-                  <div className="mt-1 grid grid-cols-1 sm:grid-cols-[8.5rem,1fr] gap-2 items-center">
+                  <div className="mt-1 grid grid-cols-1 items-center gap-2 sm:grid-cols-[8.5rem,1fr]">
                     <div className="relative">
                       <Flag className="pointer-events-none absolute left-2 top-2.5 h-4 w-4 text-neutral-400" />
                       <select
                         aria-label="Country code"
-                        className="w-full rounded-xl border border-neutral-200 bg-gray-50 pl-8 pr-2 py-2 outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+                        className="w-full rounded-xl border border-neutral-200 bg-gray-50 py-2 pl-8 pr-2 outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
                         value={countryDial}
                         onChange={(e) => setCountryDial(e.target.value)}
                       >

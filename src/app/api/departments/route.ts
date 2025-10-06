@@ -1,4 +1,3 @@
-// src/app/api/departments/route.ts
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/db";
 import { Department } from "@/lib/models/Department";
