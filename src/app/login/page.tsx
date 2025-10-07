@@ -28,11 +28,34 @@ export const dynamic = "force-dynamic";
 
 const COUNTRIES: Country[] = [
   { code: "BD", dial: "+880", label: "Bangladesh", flag: "🇧🇩" },
-  { code: "IN", dial: "+91", label: "India", flag: "🇮🇳" },
-  { code: "PK", dial: "+92", label: "Pakistan", flag: "🇵🇰" },
-  { code: "US", dial: "+1", label: "United States", flag: "🇺🇸" },
-  { code: "GB", dial: "+44", label: "United Kingdom", flag: "🇬🇧" },
+  { code: "IN", dial: "+91",  label: "India",       flag: "🇮🇳" },
+  { code: "PK", dial: "+92",  label: "Pakistan",    flag: "🇵🇰" },
+  { code: "US", dial: "+1",   label: "United States", flag: "🇺🇸" },
+  { code: "GB", dial: "+44",  label: "United Kingdom", flag: "🇬🇧" },
 ];
+
+// expected national significant number (NSN) lengths per dial code
+function expectedNSNLength(dial: string): number {
+  switch (dial) {
+    case "+880": // BD: drop leading 0 -> 10 digits remain
+    case "+91":  // IN
+    case "+92":  // PK
+    case "+1":   // US
+    case "+44":  // UK (simplified to 10 for UX consistency)
+      return 10;
+    default:
+      return 10;
+  }
+}
+
+// normalize user-typed local number to NSN rules
+function normalizeLocal(input: string, dial: string): string {
+  const digits = (input || "").replace(/\D/g, "");
+  const n = expectedNSNLength(dial);
+  // “smart” behavior: always keep the last N digits
+  // e.g. BD: 017XXXXXXXX -> take last 10 -> 1XXXXXXXXX
+  return digits.length > n ? digits.slice(-n) : digits;
+}
 
 /** The inner client component that actually calls useSearchParams */
 function LoginContent() {
@@ -42,14 +65,12 @@ function LoginContent() {
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [afid, setAfid] = useState("");
   const [countryDial, setCountryDial] = useState("+880"); // default BD
-  const [localNumber, setLocalNumber] = useState(""); // digits only
+  const [localNumber, setLocalNumber] = useState(""); // normalized digits only
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
   const [busy, setBusy] = useState(false);
   const [conf, setConf] = useState<ConfirmationResult | null>(null);
-  const [toast, setToast] = useState<{ kind: "ok" | "err"; msg: string } | null>(
-    null
-  );
+  const [toast, setToast] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
 
   // Preload Firebase client
   useEffect(() => {
@@ -67,10 +88,34 @@ function LoginContent() {
     } catch {}
   }, []);
 
+  // Re-normalize local number if the user changes country
+  useEffect(() => {
+    setLocalNumber((prev) => normalizeLocal(prev, countryDial));
+  }, [countryDial]);
+
   const fullPhone = useMemo(
-    () => `${countryDial}${localNumber}`,
+    () => `${countryDial}${normalizeLocal(localNumber, countryDial)}`,
     [countryDial, localNumber]
   );
+
+  const placeholder = useMemo(() => {
+    const n = expectedNSNLength(countryDial);
+    // Show a readable mask hint like: 1XXXXXXXXX
+    if (countryDial === "+880") return "1".padEnd(n, "X");
+    if (countryDial === "+1")   return "2".padEnd(n, "X");
+    return "•".repeat(Math.min(3, n)) + "…" + "•".repeat(Math.max(0, n - 4));
+  }, [countryDial]);
+
+  const hintText = useMemo(() => {
+    if (countryDial === "+880") {
+      return "BD numbers: type the 11-digit local (e.g. 017…) — we'll keep the last 10 digits for +880 format.";
+    }
+    if (countryDial === "+1") return "US: enter 10 digits.";
+    if (countryDial === "+91") return "IN: enter 10 digits.";
+    if (countryDial === "+92") return "PK: enter 10 digits.";
+    if (countryDial === "+44") return "UK: enter 10 digits (leading 0 is dropped).";
+    return "Enter your local number; we'll format it for international dialing.";
+  }, [countryDial]);
 
   const showToast = (kind: "ok" | "err", msg: string) => {
     setToast({ kind, msg });
@@ -227,7 +272,6 @@ function LoginContent() {
 
                 {/* Phone */}
                 <Field label="Phone">
-                  {/* Responsive: stack on xs, side-by-side from sm+ */}
                   <div className="mt-1 grid grid-cols-1 items-center gap-2 sm:grid-cols-[8.5rem,1fr]">
                     <div className="relative">
                       <Flag className="pointer-events-none absolute left-2 top-2.5 h-4 w-4 text-neutral-400" />
@@ -245,19 +289,26 @@ function LoginContent() {
                       </select>
                     </div>
 
-                    <input
-                      aria-label="Phone number"
-                      className="min-w-0 w-full rounded-xl border border-neutral-200 px-3 py-2 outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
-                      placeholder="Phone number"
-                      value={localNumber}
-                      onChange={(e) => {
-                        const digits = e.target.value.replace(/\D/g, "").slice(0, 15);
-                        setLocalNumber(digits);
-                      }}
-                      inputMode="numeric"
-                      autoComplete="tel"
-                      required
-                    />
+                    <div className="space-y-1">
+                      <input
+                        aria-label="Phone number"
+                        className="min-w-0 w-full rounded-xl border border-neutral-200 px-3 py-2 outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+                        placeholder={placeholder}
+                        value={localNumber}
+                        onChange={(e) =>
+                          setLocalNumber(normalizeLocal(e.target.value, countryDial))
+                        }
+                        inputMode="numeric"
+                        autoComplete="tel"
+                        required
+                      />
+                      <div className="flex items-center justify-between text-[11px] text-neutral-500">
+                        <span>{hintText}</span>
+                        <span className="tabular-nums">
+                          Preview: <b>{fullPhone}</b>
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </Field>
 
