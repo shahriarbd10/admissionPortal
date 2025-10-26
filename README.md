@@ -4,63 +4,53 @@
 ---
 
 ## 📘 Overview
-The **Admission Portal** is a modern, full-stack web application that digitizes the **university admission examination process**.  
-It provides a complete ecosystem for **students, faculties, exam committees, and administrators**, ensuring a secure, automated, and transparent admission workflow.
+The **Admission Portal** is a modern **Next.js-based full-stack web application** built to simplify the **university admission examination process**.  
+It provides a complete digital ecosystem for **students, faculties, exam committees, and administrators**, ensuring **secure, scalable, and automated** admission management.  
 
-The system supports:
-- **OTP-based student verification**
-- **Online departmental exams**
-- **Automated question generation**
-- **Result calculation & ranking system**
+It features **OTP-based login**, **department-filtered exam generation**, and **automated result compilation**, eliminating manual coordination between students and faculties.
 
 ---
 
-## 👥 User Roles & Capabilities
+## 👥 User Roles & Responsibilities
 
 ### 🧑‍🎓 Student
-- Registers and logs in using **Admission Form ID** and **OTP verification** (sent to registered email/number).  
-- Completes the **personal information form** and selects department preferences.  
-- Appears for the **department-specific online exam**, which includes:
-  - Auto-fetched, department-filtered random questions  
-  - Multiple question types: **MCQs**, **True/False**, and **Fill in the blanks**
-  - Fixed exam duration with an auto-submit timer  
-- Views final admission scores once published.
-
----
+- Registers and logs in with **Admission Form ID** verified through **OTP authentication**.  
+- Submits personal and academic details (SSC & HSC scores).  
+- Appears in department-based exams scheduled by the committee.  
+- Receives randomized question sets filtered by **department and subject eligibility**.  
+- Exam auto-submits upon time completion and results are generated automatically.
 
 ### 🧑‍🏫 Faculty / Exam Committee
-- Faculties can securely log in to their portal.  
-- Upload **up to 50 questions per subject** across 5 major subjects.  
-- Tag each question with:
-  - **Department eligibility** (which departments can access it)
-  - **Question type** (MCQ / True-False / Fill)
-- The system automatically mixes and distributes questions by department, ensuring fairness and variety.
-
----
+- Secure login portal to **upload and manage question sets**.  
+- Each faculty can:
+  - Upload **50 questions** across **5 subjects**.  
+  - Define **question type** (MCQ, True/False, Fill in the blanks).  
+  - Select which **departments** can use their questions.  
+- The system automatically mixes and fetches questions for fairness and coverage.
 
 ### 🧑‍💼 Admin / Department Head
-- Full access to system data and control panels.  
-- Creates and manages departments, faculties, and student lists.  
-- Monitors exams in real time (active sessions, submissions, and timings).  
-- Reviews answer sheets and validates evaluation reports.  
-- Oversees **marks integration**, where:
-  - **SSC = 20 points**  
-  - **HSC = 30 points**  
-  - **Exam = 50 points**  
-  - ➜ **Total Admission Score = 100**
+- Has full system control: users, departments, and exams.  
+- Monitors live exam sessions, student submissions, and reports.  
+- Reviews results and validates answer sheets.  
+- Generates final merit lists combining:
+  - **SSC (20 pts)**  
+  - **HSC (30 pts)**  
+  - **Exam (50 pts)**  
+  ➜ **Total Merit Score (100 pts)**
 
 ---
 
 ## 🧠 Key Features
-- 🔐 **Role-based Authentication** (Student, Faculty, Admin)
-- ✉️ **OTP Verification** for secure student login  
-- 🧾 **Dynamic Question Generation** — Randomized, department-filtered question sets  
-- 🧮 **Auto Evaluation System** — Instant grading and result compilation  
-- 🕒 **Fixed-Time Exam Sessions** with countdown and auto submission  
-- 📊 **Merit Score Calculation** combining previous academic results  
-- 📤 **Faculty Upload System** for large question sets  
-- 📁 **Admin Panel** for centralized control and reporting  
-- 🧠 **Multi-question-type support** (MCQ, True/False, Fill in the blanks)
+- 🔐 **Role-Based Authentication** — Students, Faculties, Admin  
+- ✉️ **OTP Verification** — Secure student login and registration  
+- 🧾 **Automated Question Distribution** — Department-based randomization  
+- 🕒 **Timed Exams** — Auto submission after countdown  
+- 🧮 **Auto Evaluation** — Real-time marking and result generation  
+- 📊 **Merit Score Calculation** (20 + 30 + 50 = 100)  
+- 📤 **Faculty Dashboard** — Upload and manage question sets  
+- 🧩 **Admin Panel** — Monitor users, sessions, and performance  
+- 📚 **Multiple Question Types** — MCQ, True/False, Fill in the blanks  
+- 🚀 **Server-Side Rendering (SSR)** for optimized performance  
 
 ---
 
@@ -68,22 +58,23 @@ The system supports:
 
 | Layer | Technology |
 |--------|-------------|
-| **Frontend** | React.js • Tailwind CSS • Axios |
-| **Backend** | Node.js • Express.js |
-| **Database** | MongoDB |
-| **Authentication** | JWT + OTP Verification (Email / SMS Gateway Integration) |
-| **Deployment** | Vercel (Frontend) • Render / AWS EC2 (Backend) |
+| **Frontend** | Next.js 14 (App Router) • React • Tailwind CSS |
+| **Backend** | Next.js API Routes • Express-style Controllers |
+| **Database** | MongoDB (Mongoose ODM) |
+| **Authentication** | JWT + OTP (via Email / Phone Gateway) |
+| **Deployment** | Vercel (Full-stack) |
 | **Version Control** | Git & GitHub |
+| **State Management** | React Hooks & Context API |
 
 ---
 
-## 🧩 System Architecture
+## 🧩 Architecture Flow
 ```mermaid
 graph TD;
-A[Student Login via OTP] --> B[Department Allotted]
-B --> C[Fetch Randomized Questions]
-C --> D[Timed Exam Begins]
+A[Student Login via OTP] --> B[Dashboard Access]
+B --> C[Fetch Department-Based Questions]
+C --> D[Start Timed Exam]
 D --> E[Auto Submit on Timeout]
-E --> F[Result Evaluation & Report Generation]
+E --> F[Answer Evaluation & Report Generation]
 F --> G[Admin Final Review]
-G --> H[Final Merit List Published]
+G --> H[Merit Score Published]
