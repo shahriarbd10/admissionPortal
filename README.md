@@ -1,56 +1,55 @@
 # 🎓 Admission Portal — University Online Exam & Management System  
-**Live Site:** [https://admission-portal-self.vercel.app/](https://admission-portal-self.vercel.app/)  
+**Live Site:** [https://admission-portal-self.vercel.app/](https://admission-portal-self.vercel.app/)
 
 ---
 
 ## 📘 Overview
-The **Admission Portal** is a modern **Next.js-based full-stack web application** built to simplify the **university admission examination process**.  
-It provides a complete digital ecosystem for **students, faculties, exam committees, and administrators**, ensuring **secure, scalable, and automated** admission management.  
+The **Admission Portal** is a full-stack **Next.js 14 web application** designed to automate and modernize the **university admission process**.  
+It provides a centralized system for **students**, **faculties**, and **administrators** to manage online exams, question sets, and result processing — all in one secure platform.
 
-It features **OTP-based login**, **department-filtered exam generation**, and **automated result compilation**, eliminating manual coordination between students and faculties.
+This platform integrates **OTP-based authentication**, **department-specific exam generation**, and **cloud-hosted data management** using **MongoDB Atlas**, ensuring reliability, scalability, and a smooth user experience.
 
 ---
 
 ## 👥 User Roles & Responsibilities
 
-### 🧑‍🎓 Student
-- Registers and logs in with **Admission Form ID** verified through **OTP authentication**.  
-- Submits personal and academic details (SSC & HSC scores).  
-- Appears in department-based exams scheduled by the committee.  
-- Receives randomized question sets filtered by **department and subject eligibility**.  
-- Exam auto-submits upon time completion and results are generated automatically.
+### 🧑‍🎓 Students
+- Log in securely with **Admission Form ID** verified via **OTP** (email/SMS).  
+- Submit personal and academic information (including SSC and HSC scores).  
+- Appear for department-wise exams at scheduled times.  
+- Receive dynamically fetched random questions relevant to their department.  
+- Exam auto-submits once the timer expires, and results are evaluated instantly.
 
 ### 🧑‍🏫 Faculty / Exam Committee
-- Secure login portal to **upload and manage question sets**.  
-- Each faculty can:
-  - Upload **50 questions** across **5 subjects**.  
-  - Define **question type** (MCQ, True/False, Fill in the blanks).  
-  - Select which **departments** can use their questions.  
-- The system automatically mixes and fetches questions for fairness and coverage.
+- Authorized login to **upload and manage question sets**.  
+- Can create up to **50 questions** across **5 subjects**.  
+- Each question can be tagged by:
+  - **Department eligibility**
+  - **Question type** — MCQ, True/False, or Fill in the blanks  
+- The system ensures department-wise distribution and fairness through randomization.
 
 ### 🧑‍💼 Admin / Department Head
-- Has full system control: users, departments, and exams.  
-- Monitors live exam sessions, student submissions, and reports.  
-- Reviews results and validates answer sheets.  
-- Generates final merit lists combining:
+- Has complete visibility and control of the system.  
+- Creates departments, manages faculty and student access.  
+- Tracks real-time exam activity and verifies result reports.  
+- Finalizes student merit lists combining:
   - **SSC (20 pts)**  
   - **HSC (30 pts)**  
   - **Exam (50 pts)**  
-  ➜ **Total Merit Score (100 pts)**
+  ➜ **Total Merit Score = 100**
 
 ---
 
 ## 🧠 Key Features
-- 🔐 **Role-Based Authentication** — Students, Faculties, Admin  
-- ✉️ **OTP Verification** — Secure student login and registration  
-- 🧾 **Automated Question Distribution** — Department-based randomization  
-- 🕒 **Timed Exams** — Auto submission after countdown  
-- 🧮 **Auto Evaluation** — Real-time marking and result generation  
-- 📊 **Merit Score Calculation** (20 + 30 + 50 = 100)  
-- 📤 **Faculty Dashboard** — Upload and manage question sets  
-- 🧩 **Admin Panel** — Monitor users, sessions, and performance  
-- 📚 **Multiple Question Types** — MCQ, True/False, Fill in the blanks  
-- 🚀 **Server-Side Rendering (SSR)** for optimized performance  
+- 🔐 **Role-Based Authentication** — Students, Faculties, and Admins  
+- ✉️ **OTP Verification** — Secure student access  
+- 🧾 **Dynamic Question Generation** — Department-wise randomization  
+- 🕒 **Timed Examinations** — Auto submission after countdown  
+- 🧮 **Automatic Evaluation** — Instant marking system  
+- 📊 **Merit Score Computation** (20 + 30 + 50)  
+- 📤 **Faculty Dashboard** — Upload and manage question sets easily  
+- 🧩 **Admin Control Panel** — Real-time monitoring and analytics  
+- 🚀 **Deployed on Vercel** with serverless Next.js API routes  
 
 ---
 
@@ -58,23 +57,24 @@ It features **OTP-based login**, **department-filtered exam generation**, and **
 
 | Layer | Technology |
 |--------|-------------|
-| **Frontend** | Next.js 14 (App Router) • React • Tailwind CSS |
-| **Backend** | Next.js API Routes • Express-style Controllers |
-| **Database** | MongoDB (Mongoose ODM) |
-| **Authentication** | JWT + OTP (via Email / Phone Gateway) |
+| **Framework** | Next.js 14 (App Router) |
+| **Frontend** | React • Tailwind CSS |
+| **Backend** | Next.js API Routes • Node.js Controllers |
+| **Database** | MongoDB Atlas (Cloud Cluster) |
+| **Authentication** | JWT + OTP (Email / SMS Gateway) |
 | **Deployment** | Vercel (Full-stack) |
 | **Version Control** | Git & GitHub |
 | **State Management** | React Hooks & Context API |
 
 ---
 
-## 🧩 Architecture Flow
+## 🧩 System Flow
 ```mermaid
 graph TD;
-A[Student Login via OTP] --> B[Dashboard Access]
-B --> C[Fetch Department-Based Questions]
-C --> D[Start Timed Exam]
+A[Student Login via OTP] --> B[Profile & Department Selection]
+B --> C[Department-based Question Fetch]
+C --> D[Timed Exam Begins]
 D --> E[Auto Submit on Timeout]
-E --> F[Answer Evaluation & Report Generation]
-F --> G[Admin Final Review]
-G --> H[Merit Score Published]
+E --> F[Answer Evaluation & Score Generation]
+F --> G[Admin Review & Merit Calculation]
+G --> H[Result Published]
