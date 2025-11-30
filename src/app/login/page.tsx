@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { phoneLoginSchema } from "@/lib/schemas";
 import { initFirebaseClient, startPhoneOtp } from "@/lib/firebaseClient";
+
 import {
   Smartphone,
   ShieldCheck,
@@ -23,61 +24,55 @@ import {
 type ConfirmationResult = import("firebase/auth").ConfirmationResult;
 type Country = { code: string; dial: string; label: string; flag: string };
 
-// Prevent static generation / prerender for this page
 export const dynamic = "force-dynamic";
 
 const COUNTRIES: Country[] = [
   { code: "BD", dial: "+880", label: "Bangladesh", flag: "🇧🇩" },
-  { code: "IN", dial: "+91",  label: "India",       flag: "🇮🇳" },
-  { code: "PK", dial: "+92",  label: "Pakistan",    flag: "🇵🇰" },
-  { code: "US", dial: "+1",   label: "United States", flag: "🇺🇸" },
-  { code: "GB", dial: "+44",  label: "United Kingdom", flag: "🇬🇧" },
+  { code: "IN", dial: "+91", label: "India", flag: "🇮🇳" },
+  { code: "PK", dial: "+92", label: "Pakistan", flag: "🇵🇰" },
+  { code: "US", dial: "+1", label: "United States", flag: "🇺🇸" },
+  { code: "GB", dial: "+44", label: "United Kingdom", flag: "🇬🇧" },
 ];
 
-// expected national significant number (NSN) lengths per dial code
 function expectedNSNLength(dial: string): number {
   switch (dial) {
-    case "+880": // BD: drop leading 0 -> 10 digits remain
-    case "+91":  // IN
-    case "+92":  // PK
-    case "+1":   // US
-    case "+44":  // UK (simplified to 10 for UX consistency)
+    case "+880":
+    case "+91":
+    case "+92":
+    case "+1":
+    case "+44":
       return 10;
     default:
       return 10;
   }
 }
 
-// normalize user-typed local number to NSN rules
 function normalizeLocal(input: string, dial: string): string {
   const digits = (input || "").replace(/\D/g, "");
   const n = expectedNSNLength(dial);
-  // “smart” behavior: always keep the last N digits
-  // e.g. BD: 017XXXXXXXX -> take last 10 -> 1XXXXXXXXX
   return digits.length > n ? digits.slice(-n) : digits;
 }
 
-/** The inner client component that actually calls useSearchParams */
 function LoginContent() {
   const params = useSearchParams();
   const next = params.get("next") || "/profile";
 
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [afid, setAfid] = useState("");
-  const [countryDial, setCountryDial] = useState("+880"); // default BD
-  const [localNumber, setLocalNumber] = useState(""); // normalized digits only
+  const [countryDial, setCountryDial] = useState("+880");
+  const [localNumber, setLocalNumber] = useState("");
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
   const [busy, setBusy] = useState(false);
   const [conf, setConf] = useState<ConfirmationResult | null>(null);
   const [toast, setToast] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
 
-  // Preload Firebase client
+  // Load Firebase client ONLY once
   useEffect(() => {
     initFirebaseClient().catch(() => {});
   }, []);
 
-  // Auto-pick country by locale (optional)
+  // Auto country detection
   useEffect(() => {
     try {
       const locale = Intl.DateTimeFormat().resolvedOptions().locale.toUpperCase();
@@ -88,7 +83,6 @@ function LoginContent() {
     } catch {}
   }, []);
 
-  // Re-normalize local number if the user changes country
   useEffect(() => {
     setLocalNumber((prev) => normalizeLocal(prev, countryDial));
   }, [countryDial]);
@@ -100,20 +94,19 @@ function LoginContent() {
 
   const placeholder = useMemo(() => {
     const n = expectedNSNLength(countryDial);
-    // Show a readable mask hint like: 1XXXXXXXXX
     if (countryDial === "+880") return "1".padEnd(n, "X");
-    if (countryDial === "+1")   return "2".padEnd(n, "X");
+    if (countryDial === "+1") return "2".padEnd(n, "X");
     return "•".repeat(Math.min(3, n)) + "…" + "•".repeat(Math.max(0, n - 4));
   }, [countryDial]);
 
   const hintText = useMemo(() => {
     if (countryDial === "+880") {
-      return "BD numbers: type the 11-digit local (e.g. 017…) — we'll keep the last 10 digits for +880 format.";
+      return "BD numbers: type 11-digit local (017…), we keep last 10 digits for +880.";
     }
     if (countryDial === "+1") return "US: enter 10 digits.";
     if (countryDial === "+91") return "IN: enter 10 digits.";
     if (countryDial === "+92") return "PK: enter 10 digits.";
-    if (countryDial === "+44") return "UK: enter 10 digits (leading 0 is dropped).";
+    if (countryDial === "+44") return "UK: enter 10 digits.";
     return "Enter your local number; we'll format it for international dialing.";
   }, [countryDial]);
 
@@ -126,15 +119,15 @@ function LoginContent() {
     setBusy(true);
     try {
       phoneLoginSchema.parse({ afid, phone: fullPhone });
+
       const { auth } = await initFirebaseClient();
-      const c = await startPhoneOtp(auth, fullPhone);
+      const c = await startPhoneOtp(auth, fullPhone); // uses invisible recaptcha
       setConf(c);
       setStep("otp");
       showToast("ok", "OTP sent to your phone.");
       setTimeout(() => inputsRef.current[0]?.focus(), 200);
-    } catch (e: unknown) {
-      const err = e as { message?: string };
-      showToast("err", err?.message || "Failed to send OTP");
+    } catch (e: any) {
+      showToast("err", e?.message || "Failed to send OTP");
     } finally {
       setBusy(false);
     }
@@ -142,11 +135,13 @@ function LoginContent() {
 
   async function handleVerify() {
     if (!conf) return;
+
     const code = otp.join("");
     if (code.length !== 6) {
       showToast("err", "Enter the 6-digit code");
       return;
     }
+
     setBusy(true);
     try {
       const cred = await conf.confirm(code);
@@ -157,13 +152,14 @@ function LoginContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idToken, afid }),
       });
+
       const data = await r.json();
       if (!r.ok) throw new Error(data?.error || "Login failed");
+
       showToast("ok", "Verified!");
       window.location.href = next || data?.next || "/profile";
-    } catch (e: unknown) {
-      const err = e as { message?: string };
-      showToast("err", err?.message || "Invalid or expired code");
+    } catch (e: any) {
+      showToast("err", e?.message || "Invalid or expired code");
     } finally {
       setBusy(false);
     }
@@ -208,7 +204,6 @@ function LoginContent() {
               </p>
             </div>
 
-            {/* Home button */}
             <Link
               href="/"
               prefetch={false}
@@ -258,7 +253,6 @@ function LoginContent() {
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.2 }}
               >
-                {/* AFID */}
                 <Field label="Admission Form ID">
                   <input
                     className="mt-1 w-full rounded-xl border border-neutral-200 px-3 py-2 outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
@@ -270,7 +264,6 @@ function LoginContent() {
                   />
                 </Field>
 
-                {/* Phone */}
                 <Field label="Phone">
                   <div className="mt-1 grid grid-cols-1 items-center gap-2 sm:grid-cols-[8.5rem,1fr]">
                     <div className="relative">
@@ -324,6 +317,8 @@ function LoginContent() {
                   )}
                   {busy ? "Sending…" : "Send OTP"}
                 </button>
+
+                {/* reCAPTCHA container */}
                 <div id="recaptcha-container" />
               </motion.form>
             ) : (
@@ -397,7 +392,6 @@ function LoginContent() {
 }
 
 export default function LoginPage() {
-  // ✅ Wrap the component that calls useSearchParams in Suspense
   return (
     <Suspense fallback={null}>
       <LoginContent />
