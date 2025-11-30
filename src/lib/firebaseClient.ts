@@ -6,14 +6,14 @@ let _configPromise: Promise<{
   projectId: string;
 }> | null = null;
 
-// Extend window type for TypeScript
+// Extend window type
 declare global {
   interface Window {
     _recaptchaVerifier?: any;
   }
 }
 
-/** Fetch Firebase web config from server */
+/** Fetch Firebase web config */
 async function fetchWebConfig() {
   if (!_configPromise) {
     _configPromise = fetch("/api/config/firebase").then((r) => r.json());
@@ -23,7 +23,7 @@ async function fetchWebConfig() {
   return cfg;
 }
 
-/** Initialize Firebase client (idempotent) */
+/** Init Firebase */
 export async function initFirebaseClient() {
   const [{ initializeApp, getApps, getApp }, { getAuth }] = await Promise.all([
     import("firebase/app"),
@@ -37,43 +37,36 @@ export async function initFirebaseClient() {
   return { app, auth };
 }
 
-/**
- * Ensure reCAPTCHA v2 Invisible (NOT Enterprise)
- * FIXES:
- * - "Unrecognized feature: 'private-token'"
- * - Enterprise reCAPTCHA auto-loading
- * - PAT (Privacy Sandbox) mode
- */
+/** Correct reCAPTCHA for Firebase v10+ */
 export async function ensureInvisibleRecaptcha(
   auth: import("firebase/auth").Auth
 ) {
   if (typeof window === "undefined") return null;
 
-  // Reuse if exists
   if (window._recaptchaVerifier) return window._recaptchaVerifier;
 
   const { RecaptchaVerifier } = await import("firebase/auth");
 
-  // 🔥 IMPORTANT: Firebase v9 constructor order: (auth, containerId, params)
+  // 🔥 Firebase v10+ signature:
+  // new RecaptchaVerifier(auth, containerId, options)
   window._recaptchaVerifier = new RecaptchaVerifier(
-    auth,                       // auth must be FIRST for v9
-    "recaptcha-container",      // container id in DOM
+    auth,
+    "recaptcha-container", // container
     {
       size: "invisible",
-
-      // prevents Enterprise recaptcha
-      appCheck: undefined,
-      appCheckToken: false,
-
       callback: () => {},
       "expired-callback": () => {},
+
+      // prevent PAT / Enterprise reCAPTCHA
+      appCheck: undefined,
+      appCheckToken: false,
     }
   );
 
   return window._recaptchaVerifier;
 }
 
-/** Start OTP flow */
+/** Start OTP */
 export async function startPhoneOtp(
   auth: import("firebase/auth").Auth,
   phoneE164: string

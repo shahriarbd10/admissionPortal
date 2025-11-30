@@ -14,12 +14,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="color-scheme" content="light" />
 
-        {/* FIX: Load correct reCAPTCHA v2 script */}
-        <script 
-          src="https://www.google.com/recaptcha/api.js"
-          async 
-          defer
-        ></script>
+        {/*
+          IMPORTANT:
+          ❌ DO NOT load reCAPTCHA scripts manually.
+          Firebase Phone Auth injects its own reCAPTCHA internally.
+          Adding this script breaks invisible reCAPTCHA and causes errors.
+        */}
       </head>
 
       <body className="min-h-screen bg-neutral-50 text-neutral-900 antialiased">
@@ -34,8 +34,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         <div className="min-h-screen flex flex-col">{children}</div>
 
-        {/* reCAPTCHA container */}
-        <div id="recaptcha-container" />
+        {/* Firebase invisible reCAPTCHA attaches to this container */}
+        <div id="recaptcha-container"></div>
       </body>
     </html>
   );
